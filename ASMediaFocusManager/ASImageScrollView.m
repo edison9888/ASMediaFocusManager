@@ -48,6 +48,7 @@
 #import <Foundation/Foundation.h>
 
 #import "ASImageScrollView.h"
+#import "ASMediaFocusManager.h"
 
 #pragma mark -
 
@@ -72,6 +73,7 @@
         self.showsHorizontalScrollIndicator = NO;
         self.bouncesZoom = YES;
         self.decelerationRate = UIScrollViewDecelerationRateFast;
+        self.delegate = self;        
     }
     return self;
 }
@@ -114,6 +116,19 @@
     }
 }
 
+
+#pragma mark - UIScrollViewDelegate
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return self.zoomImageView;
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
+{
+    
+}
+
 #pragma mark - Configure scrollView to display new image
 
 
@@ -124,8 +139,11 @@
         self.zoomScale = 1.0;
         
         // make a new UIImageView for the new image
-        self.zoomImageView = [[UIImageView alloc] initWithImage:image];
-        [self addSubview:self.zoomImageView];        
+        self.zoomImageView = [[UIImageView alloc] initWithFrame:self.bounds];
+        self.zoomImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.zoomImageView.image = image;
+        self.zoomImageView.frame = [ASMediaFocusManager calculateFullScreenRectForImage:image];
+        [self addSubview:self.zoomImageView];
     }
     else
     {
@@ -164,6 +182,10 @@
     // don't let minScale exceed maxScale. (If the image is smaller than the screen, we don't want to force it to be zoomed.)
     if (minScale > maxScale) {
         minScale = maxScale;
+    }
+    
+    if (maxScale < 1.5) {
+        maxScale = 1.5;
     }
         
     self.maximumZoomScale = maxScale;

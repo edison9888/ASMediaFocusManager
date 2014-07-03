@@ -9,9 +9,9 @@
 #import "ASMediaFocusController.h"
 #import <QuartzCore/QuartzCore.h>
 
-static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
+static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.5;
 
-@interface ASMediaFocusController () <UIScrollViewDelegate>
+@interface ASMediaFocusController ()
 
 @property (nonatomic, assign) UIDeviceOrientation previousOrientation;
 
@@ -19,23 +19,12 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
 
 @implementation ASMediaFocusController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
-        self.doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
-        self.doubleTapGesture.numberOfTapsRequired = 2;
-    }
-
-    return self;
-}
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.titleLabel.layer.shadowOpacity = 1;
     self.titleLabel.layer.shadowOffset = CGSizeZero;
     self.titleLabel.layer.shadowRadius = 1;
-    self.accessoryView.alpha = 0;
 }
 
 - (void)viewDidUnload
@@ -59,13 +48,24 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.titleLabel.alpha = 0;
+    [UIView animateWithDuration:0.5
+                     animations:^{
+                         self.titleLabel.alpha = 1;
+                     }];
+}
+
 - (NSUInteger)supportedInterfaceOrientations
 {
-    return UIInterfaceOrientationMaskPortrait;
+    return UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskAll;
 }
 
 - (BOOL)isParentSupportingInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
 {
+    return NO;
     switch(toInterfaceOrientation)
     {
         case UIInterfaceOrientationPortrait:
@@ -92,14 +92,14 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
     if([UIDevice currentDevice].orientation == self.previousOrientation)
         return;
     
-    if((UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation) && UIDeviceOrientationIsLandscape(self.previousOrientation))
-       || (UIDeviceOrientationIsPortrait([UIDevice currentDevice].orientation) && UIDeviceOrientationIsPortrait(self.previousOrientation)))
+    if((UIInterfaceOrientationIsLandscape([UIDevice currentDevice].orientation) && UIInterfaceOrientationIsLandscape(self.previousOrientation))
+       || (UIInterfaceOrientationIsPortrait([UIDevice currentDevice].orientation) && UIInterfaceOrientationIsPortrait(self.previousOrientation)))
     {
         duration *= 2;
     }
     
-    if(([UIDevice currentDevice].orientation == UIDeviceOrientationPortrait)
-       || [self isParentSupportingInterfaceOrientation:[UIDevice currentDevice].orientation])
+    if(([UIDevice currentDevice].orientation == UIInterfaceOrientationPortrait)
+       || [self isParentSupportingInterfaceOrientation:(UIInterfaceOrientation)[UIDevice currentDevice].orientation])
     {
         transform = CGAffineTransformIdentity;
     }
@@ -107,7 +107,7 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
     {
         switch ([UIDevice currentDevice].orientation)
         {
-            case UIDeviceOrientationLandscapeRight:
+            case UIInterfaceOrientationLandscapeLeft:
                 if(self.parentViewController.interfaceOrientation == UIInterfaceOrientationPortrait)
                 {
                     transform = CGAffineTransformMakeRotation(-M_PI_2);
@@ -118,7 +118,7 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
                 }
                 break;
                 
-            case UIDeviceOrientationLandscapeLeft:
+            case UIInterfaceOrientationLandscapeRight:
                 if(self.parentViewController.interfaceOrientation == UIInterfaceOrientationPortrait)
                 {
                     transform = CGAffineTransformMakeRotation(M_PI_2);
@@ -129,11 +129,11 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
                 }
                 break;
                 
-            case UIDeviceOrientationPortrait:
+            case UIInterfaceOrientationPortrait:
                 transform = CGAffineTransformIdentity;
                 break;
                 
-            case UIDeviceOrientationPortraitUpsideDown:
+            case UIInterfaceOrientationPortraitUpsideDown:
                 transform = CGAffineTransformMakeRotation(M_PI);
                 break;
                 
@@ -168,13 +168,10 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
     
     scrollView = [[ASImageScrollView alloc] initWithFrame:self.contentView.bounds];
     scrollView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    scrollView.delegate = self;
     self.scrollView = scrollView;
     [self.contentView insertSubview:scrollView atIndex:0];
     [scrollView displayImage:self.mainImageView.image];
     self.mainImageView.hidden = YES;
-    
-    [self.scrollView addGestureRecognizer:self.doubleTapGesture];
 }
 
 - (void)uninstallZoomView
@@ -197,74 +194,11 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.4;
     view.frame = frame;
 }
 
-- (void)pinAccessoryView
+- (void)pinAccessoryViews
 {
     // Move the accessory views to the main view in order not to be rotated along with the media.
     [self pinAccessoryView:self.accessoryView];
-}
-
-- (void)showAccessoryView:(BOOL)visible
-{
-    if(visible == [self accessoryViewsVisible])
-        return;
-    
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         self.accessoryView.alpha = (visible?1:0);
-                     }
-                     completion:nil];
-}
-
-- (BOOL)accessoryViewsVisible
-{
-    return (self.accessoryView.alpha == 1);
-}
-
-#pragma mark - Actions
-- (void)handleDoubleTap:(UITapGestureRecognizer*)gesture
-{
-    CGRect frame = CGRectZero;
-    CGPoint location;
-    UIView *contentView;
-    CGFloat scale;
-    
-    if(self.scrollView.zoomScale == self.scrollView.minimumZoomScale)
-    {
-        scale = self.scrollView.maximumZoomScale;
-        contentView = [self.scrollView.delegate viewForZoomingInScrollView:self.scrollView];
-        location = [gesture locationInView:contentView];
-        frame = CGRectMake(location.x*self.scrollView.maximumZoomScale - self.scrollView.bounds.size.width/2, location.y*self.scrollView.maximumZoomScale - self.scrollView.bounds.size.height/2, self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
-    }
-    else
-    {
-        scale = self.scrollView.minimumZoomScale;
-    }
-    
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:UIViewAnimationOptionBeginFromCurrentState
-                     animations:^(void) {
-                         self.scrollView.zoomScale = scale;
-                     }
-                     completion:nil];
-    
-    if(scale == self.scrollView.maximumZoomScale)
-    {
-        [self.scrollView scrollRectToVisible:frame animated:NO];
-    }
-}
-
-#pragma mark - UIScrollViewDelegate
-- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
-{
-    return self.scrollView.zoomImageView;
-}
-
-- (void)scrollViewDidZoom:(UIScrollView *)scrollView
-{
-    [self showAccessoryView:self.scrollView.zoomScale == self.scrollView.minimumZoomScale];
+    [self pinAccessoryView:self.titleLabel];
 }
 
 #pragma mark - Notifications
