@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   }
   s.homepage = "https://github.com/autresphere/ASMediaFocusManager"
   s.source = {
-    :git => "https://github.com/autresphere/ASMediaFocusManager.git",
+    :git => "https://github.com/epingwang/ASMediaFocusManager",
     :tag => "0.1"
   }
   s.platform = :ios, '6.0'
@@ -16,4 +16,5 @@ Pod::Spec.new do |s|
   s.resources = 'ASMediaFocusManager/*.{xib}'
   s.frameworks = 'UIKit', 'Foundation', 'CoreGraphics'
   s.requires_arc = true
+  s.dependency 'AFNetworking', '~> 2.2'
 end
