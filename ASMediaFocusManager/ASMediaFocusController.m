@@ -66,20 +66,23 @@ static NSTimeInterval const kDefaultOrientationAnimationDuration = 0.5;
 - (BOOL)isParentSupportingInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
 {
     return NO;
-    switch(toInterfaceOrientation)
-    {
-        case UIInterfaceOrientationPortrait:
-            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskPortrait;
-            
-        case UIInterfaceOrientationPortraitUpsideDown:
-            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskPortraitUpsideDown;
-            
-        case UIInterfaceOrientationLandscapeLeft:
-            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskLandscapeLeft;
-            
-        case UIInterfaceOrientationLandscapeRight:
-            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskLandscapeRight;
-    }
+//    switch(toInterfaceOrientation)
+//    {
+//        case UIInterfaceOrientationPortrait:
+//            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskPortrait;
+//            
+//        case UIInterfaceOrientationPortraitUpsideDown:
+//            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskPortraitUpsideDown;
+//            
+//        case UIInterfaceOrientationLandscapeLeft:
+//            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskLandscapeLeft;
+//            
+//        case UIInterfaceOrientationLandscapeRight:
+//            return [self.parentViewController supportedInterfaceOrientations] & UIInterfaceOrientationMaskLandscapeRight;
+//            
+//        case UIInterfaceOrientationUnknown:
+//            return [self.parentViewController supportedInterfaceOrientations] &UIInterfaceOrientationUnknown;
+//    }
 }
 
 #pragma mark - Public

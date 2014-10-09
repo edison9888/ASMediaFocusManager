@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   }
   s.homepage = "https://github.com/autresphere/ASMediaFocusManager"
   s.source = {
-    :git => "https://github.com/epingwang/ASMediaFocusManager",
+    :git => "https://github.com/iaomw/ASMediaFocusManager",
     :tag => "0.1"
   }
   s.platform = :ios, '6.0'
